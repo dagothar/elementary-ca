@@ -1,6 +1,6 @@
 "use strict";
 
-define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
+define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2d, bigint) {
 
   const CONFIG = {
     VIEW_ID:        '#view',
@@ -9,11 +9,14 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
     WORLD_WIDTH:    160,
     WORLD_HEIGHT:   120,
     START_RULE:     30,
+    START_SEED:     0,
+    CELL_SIZE:      4,
     BTN_START_DIV:  '.button-start-div',
     BTN_STOP_DIV:   '.button-stop-div',
     BTN_START:      '.button-start',
     BTN_STOP:       '.button-stop',
     BTN_STEP:       '.button-step',
+    RULE:           '.rule'
   };
 
 
@@ -30,12 +33,13 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
     this.layer1 = undefined;
     this.layer2 = undefined;
     this.world = new array2d.Array2d(CONFIG.WORLD_HEIGHT, CONFIG.WORLD_WIDTH, '0');
-    this.rule = 0;
+    this.rule = CONFIG.START_RULE;
     this.speed = 1;
     this.running = false;
     this.interval = undefined;
     this.steps = 0;
     this.currentRow = 0;
+    this.seed = bigInt('1');
   };
 
 
@@ -55,7 +59,9 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
 
     /* initialize interface */
     $('.slider-speed').val(0);
-    $('#rule').val(0);
+    $('#rule').val(this.rule);
+    $('.rule').text(this.rule);
+    this.markRulePips(this.rule);
     $(CONFIG.BTN_START_DIV).show();
     $(CONFIG.BTN_STOP_DIV).hide();
 
@@ -67,6 +73,7 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
       $(this).val(r);
       self.markRulePips(r);
       self.rule = r;
+      $('.rule').text(self.rule);
     });
 
     $('.r').click(function() {
@@ -74,6 +81,7 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
       $(this).toggleClass('r0').toggleClass('r1');
       self.rule ^= n;
       $('#rule').val(self.rule);
+      $('.rule').text(self.rule);
     });
 
     $('.slider-speed').on('input change', function() {
@@ -86,7 +94,8 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
     $('.button-stop').click(function() { self.stop(); })
     $('.button-randomize').click(function() { self.randomize(); })
 
-    //this.update();
+    this.world.set(0, 80, '1');
+    this.update();
   };
 
 
@@ -119,7 +128,7 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
     for (var x = 0; x < width; ++x) {
       for (var y = 0; y < height; ++y) {
         ctx.fillStyle = this.world.get(y, x) == '1' ? 'black' : 'white';
-        ctx.fillRect(x*5, y*5, 5, 5);
+        ctx.fillRect(x*CONFIG.CELL_SIZE, y*CONFIG.CELL_SIZE, CONFIG.CELL_SIZE, CONFIG.CELL_SIZE);
         ctx.fill();
       }
     }
@@ -129,14 +138,13 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
 
   App.prototype.step = function() {
     ++this.currentRow;
+    ++this.steps;
 
     if (this.currentRow == this.world.getRows()) {
       this.world.deleteRow(0);
-      this.world.addRow(this.world.getRows()-1, '0');
+      this.world.addRow(this.world.getRows(), '0');
       --this.currentRow;
     }
-
-    console.log(this.currentRow, this.world.getRows());
 
     var row = this.currentRow;
     var width = this.world.getCols();
@@ -145,7 +153,6 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
     for (var x = 0; x < width; ++x) {
       var parents = this.world.get(row-1, (x+width-1)%width) + this.world.get(row-1, x) + this.world.get(row-1, (x+1)%width);
       var rule = 1 << parseInt(parents, 2);
-      console.log(rule);
       if (this.rule & rule) {
         this.world.set(row, x, '1');
       } else {

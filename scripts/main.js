@@ -5,7 +5,8 @@ requirejs.config({
   paths: {
     jquery: '../vendor/jquery/jquery-3.2.0.min',
     underscore: '../vendor/underscore/underscore.min',
-    concrete: '../vendor/concrete/concrete.min'
+    concrete: '../vendor/concrete/concrete.min',
+    bigint: '../vendor/biginteger/BigInteger.min'
   },
   shim: {
     'jquery': {
@@ -16,6 +17,9 @@ requirejs.config({
     },
     'concrete': {
       exports: 'Concrete'
+    },
+    'bigint': {
+      exports: 'bigInt'
     }
   }
 });
