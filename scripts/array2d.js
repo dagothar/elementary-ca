@@ -57,6 +57,10 @@ define([], function() {
 			};
 		};
 
+		this.deleteRow = function(row) {
+			cells.splice(row, 1);
+		};
+
 	};
 
 	return {
