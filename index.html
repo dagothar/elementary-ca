@@ -1,0 +1,119 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8"/>
+  <title>Elementary Cellular Automata</title>
+
+  <link rel="stylesheet" href="vendor/bootstrap-3.3.7-dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="styles/main.css"/>
+
+</head>
+
+<body>
+  <!-- NAVIGATION -->
+  <div class="header">
+		<nav class="navbar navbar-default">
+			<div class="container">
+				<a class="navbar-brand text-center center-block" href="#">Elementary Cellular Automata</a>
+			</div>
+		</nav>
+  </div>
+
+  <!-- CONTENTS -->
+  <div class="container-full">
+    <div class="row">
+
+      <!-- LEFT SIDE BAR -->
+      <div class="col-md-2 col-md-offset-1">
+
+        <div class="panel panel-default">
+          <div class="panel-heading">Rules</div>
+          <div class="panel-body">
+
+            <!-- rule -->
+            <div class="form-group col-md-12">
+              <label>Rule:</label>
+              <input type="number" min="1" value="1" max="100" step="1" id="rule"/>
+            </div>
+
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- VIEW -->
+      <div class="col-md-6">
+        <div class="canvas-container" id="view"></div>
+      </div>
+
+
+      <!-- RIGHT SIDE BAR -->
+      <div class="col-md-2">
+
+        <div class="panel panel-default">
+          <div class="panel-heading">Controls</div>
+          <div class="panel-body">
+
+            <!-- seed -->
+            <div class="form-group col-md-12">
+              <label>Seed:</label>
+              <input type="number" min="0" value="1" step="1" id="seed"/>
+            </div>
+
+            <!-- reset button -->
+            <div class="form-group col-md-6">
+              <button type="button" class="button-reset btn btn-default btn-block btn-sm">Reset <span class="glyphicon glyphicon-off"></span></button>
+            </div>
+
+            <!-- randomize button -->
+            <div class="form-group col-md-6">
+              <button type="button" class="button-randomize btn btn-default btn-block btn-sm">Rand. <span class="glyphicon glyphicon-flash"></span></button>
+            </div>
+
+            <!-- steps -->
+            <p class="col-md-12">Steps: <span class="steps pull-right text-primary">0</span></p>
+
+            <!-- step button -->
+            <div class="form-group col-md-12">
+              <button type="button" class="button-step btn btn-default btn-block btn-sm">Step <span class="glyphicon glyphicon-step-forward"></span></button>
+            </div>
+
+            <!-- start/stop button -->
+            <div class="button-start-div form-group col-md-12">
+              <button type="button" class="button-start btn btn-primary btn-block btn-sm">Start <span class="glyphicon glyphicon-play"></span></button>
+            </div>
+            <div class="button-stop-div form-group col-md-12">
+              <button type="button" class="button-stop btn btn-primary btn-block btn-sm">Stop <span class="glyphicon glyphicon-stop"></span></button>
+            </div>
+
+            <!-- speed slider -->
+            <div class="form-group col-md-12">
+              <label>Speed:</label> <span class="speed pull-right">0</span>
+              <input type="range" min="0" val="100" max="100" class="slider-speed"/>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="container">
+        <p class="text-muted">&copy; 2017 by Adam Wolniakowski <a href="https://deltastep.blogspot.com">www.deltastep.blogspot.com</a></p>
+        <p class="text-muted">info about this demo: ...</p>
+    </div>
+  </div>
+
+
+  <!-- SCRIPTS -->
+  <script src="vendor/requirejs/require.js" data-main="scripts/main"></script>
+</body>
+
+</html>
