@@ -48,7 +48,8 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
     this.view            .add(this.layer1).add(this.layer2);
 
     /* initialize interface */
-
+    $(CONFIG.BTN_START_DIV).show();
+    $(CONFIG.BTN_STOP_DIV).hide();
 
     /* configure callbacks */
   };
@@ -66,13 +67,14 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
   };
 
 
+  App.prototype.reset = function() {
 
-  App.prototype.clear = function() {
 
+    this.update();
   };
 
 
-  App.prototype.reset = function() {
+  App.prototype.randomize = function() {
 
 
     this.update();
