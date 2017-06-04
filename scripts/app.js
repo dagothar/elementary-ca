@@ -29,7 +29,7 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
   function App() {
     this.layer1 = undefined;
     this.layer2 = undefined;
-    this.world = new array2d.Array2d(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT, 0);
+    this.world = new array2d.Array2d(CONFIG.WORLD_HEIGHT, CONFIG.WORLD_WIDTH, '0');
     this.rule = 0;
     this.speed = 1;
     this.running = false;
@@ -86,7 +86,7 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
     $('.button-stop').click(function() { self.stop(); })
     $('.button-randomize').click(function() { self.randomize(); })
 
-    this.update();
+    //this.update();
   };
 
 
@@ -105,15 +105,53 @@ define(['jquery', 'concrete', 'array2d'], function($, Concrete, array2d) {
   App.prototype.update = function() {
     $('.speed').text(this.speed.toFixed(2));
     $('.steps').text(this.steps);
+
+    this.drawWorld();
   };
 
 
   App.prototype.drawWorld = function() {
+    var ctx = this.layer1.scene.context;
+    var width = this.world.getCols();
+    var height = this.world.getRows();
 
+    ctx.save();
+    for (var x = 0; x < width; ++x) {
+      for (var y = 0; y < height; ++y) {
+        ctx.fillStyle = this.world.get(y, x) == '1' ? 'black' : 'white';
+        ctx.fillRect(x*5, y*5, 5, 5);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
   };
 
 
   App.prototype.step = function() {
+    ++this.currentRow;
+
+    if (this.currentRow == this.world.getRows()) {
+      this.world.deleteRow(0);
+      this.world.addRow(this.world.getRows()-1, '0');
+      --this.currentRow;
+    }
+
+    console.log(this.currentRow, this.world.getRows());
+
+    var row = this.currentRow;
+    var width = this.world.getCols();
+    var height = this.world.getRows();
+
+    for (var x = 0; x < width; ++x) {
+      var parents = this.world.get(row-1, (x+width-1)%width) + this.world.get(row-1, x) + this.world.get(row-1, (x+1)%width);
+      var rule = 1 << parseInt(parents, 2);
+      console.log(rule);
+      if (this.rule & rule) {
+        this.world.set(row, x, '1');
+      } else {
+        this.world.set(row, x, '0');
+      }
+    }
 
     this.update();
   };
