@@ -19,6 +19,40 @@ input { width: 100%; }
   margin: 0;
 }
 
+.rules {
+  display: block;
+  width: 100%;
+  margin: auto;
+}
+
+.rules table {
+  margin: auto;
+  text-align: center;
+  cursor: default;
+}
+
+.rules table td {
+  width: 20px;
+}
+
+.rules table td.r {
+  border: 1px solid black;
+}
+
+.rules table td.r:hover {
+  border: 1px solid red;
+}
+
+.rules table td.r0 {
+  border: 1px solid black;
+  background-color: white;
+}
+
+.rules table td.r1 {
+  border: 1px solid black;
+  background-color: black;
+}
+
 /* Sticky footer styles
 -------------------------------------------------- */
 html {
