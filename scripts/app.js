@@ -42,6 +42,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     this.currentRow = 0;
     this.seed = bigInt('1');
     this.highlightCol = null;
+    this.paint = null;
   };
 
 
@@ -103,11 +104,23 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     $('.button-randomize').click(function() { self.randomize(); })
 
     $(CONFIG.VIEW_ID).mousedown(function(e) {
-      console.log(self.getMousePos(e));
+      var pos = self.getMousePos(e);
+      self.paint = self.world.get(self.currentRow, pos.x) == '0' ? '1' : '0';
+      self.world.set(self.currentRow, pos.x, self.paint);
+      self.update();
+    });
+
+    $(CONFIG.VIEW_ID).mouseup(function(e) {
+      self.paint = null;
     });
 
     $(CONFIG.VIEW_ID).mousemove(function(e) {
-      self.highlightCol = self.getMousePos(e).x;
+      var pos = self.getMousePos(e);
+      self.highlightCol = pos.x;
+      if (self.paint) {
+        self.world.set(self.currentRow, pos.x, self.paint);
+        self.update();
+      }
     });
 
     $(CONFIG.VIEW_ID).mouseout(function() {
