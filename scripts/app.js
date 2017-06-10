@@ -37,6 +37,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     this.speed = 1;
     this.running = false;
     this.interval = undefined;
+    self.dt = 100;
     this.steps = 0;
     this.currentRow = 0;
     this.seed = bigInt('1');
@@ -58,7 +59,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     this.view            .add(this.layer1).add(this.layer2);
 
     /* initialize interface */
-    $('.slider-speed').val(0);
+    $('.slider-speed').val(50);
     $('#rule').val(this.rule);
     $('.rule').text(this.rule);
     this.markRulePips(this.rule);
@@ -85,7 +86,13 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     });
 
     $('.slider-speed').on('input change', function() {
-        self.speed = Math.pow(1.032713, $(this).val());
+        self.speed = Math.pow(1.0471285480508995334645020315281400790, $(this).val() - 50);
+        self.dt = 100 / self.speed;
+        if (self.interval) {
+          clearInterval(self.interval);
+          self.running = false;
+          self.start();
+        }
         self.update();
     });
 
@@ -93,6 +100,10 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     $('.button-start').click(function() { self.start(); })
     $('.button-stop').click(function() { self.stop(); })
     $('.button-randomize').click(function() { self.randomize(); })
+
+    $(CONFIG.VIEW_ID).mousemove(function() {
+
+    });
 
     this.world.set(0, 80, '1');
     this.update();
@@ -112,7 +123,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
 
 
   App.prototype.update = function() {
-    $('.speed').text(this.speed.toFixed(2));
+    $('.speed').text(this.speed.toFixed(2) + 'x');
     $('.steps').text(this.steps);
 
     this.drawWorld();
@@ -187,7 +198,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     if (!this.running) {
       this.running = true;
       clearInterval(this.interval);
-      this.interval = setInterval(function() { self.step(); }, 10);
+      this.interval = setInterval(function() { self.step(); }, self.dt);
     }
 
     $(CONFIG.BTN_START_DIV).hide();
