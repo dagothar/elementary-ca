@@ -37,10 +37,11 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     this.speed = 1;
     this.running = false;
     this.interval = undefined;
-    self.dt = 100;
+    this.dt = 100;
     this.steps = 0;
     this.currentRow = 0;
     this.seed = bigInt('1');
+    this.highlightCol = null;
   };
 
 
@@ -101,9 +102,17 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     $('.button-stop').click(function() { self.stop(); })
     $('.button-randomize').click(function() { self.randomize(); })
 
-    /*$(CONFIG.VIEW_ID).mousemove(function() {
+    $(CONFIG.VIEW_ID).mousedown(function(e) {
+      console.log(self.getMousePos(e));
+    });
 
-    });*/
+    $(CONFIG.VIEW_ID).mousemove(function(e) {
+      self.highlightCol = self.getMousePos(e).x;
+    });
+
+    $(CONFIG.VIEW_ID).mouseout(function() {
+      self.highlightCol = null;
+    });
 
     this.world.set(0, 80, '1');
     this.update();
@@ -150,7 +159,23 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
       ctx.clearRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
       ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
       ctx.fillRect(0, this.currentRow*CONFIG.CELL_SIZE, CONFIG.VIEW_WIDTH, CONFIG.CELL_SIZE);
+      if (this.highlightCol) {
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+        ctx.fillRect(this.highlightCol*CONFIG.CELL_SIZE, 0, CONFIG.CELL_SIZE, CONFIG.VIEW_HEIGHT);
+      }
     ctx.restore();
+  };
+
+
+  App.prototype.getMousePos = function(e) {
+    var rawPos = getMousePos(e, this.viewContainer);
+    var row = Math.floor(rawPos.y / CONFIG.CELL_SIZE);
+    var col = Math.floor(rawPos.x / CONFIG.CELL_SIZE);
+
+    return {
+      x: col,
+      y: row
+    };
   };
 
 
