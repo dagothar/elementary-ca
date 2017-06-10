@@ -101,9 +101,9 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     $('.button-stop').click(function() { self.stop(); })
     $('.button-randomize').click(function() { self.randomize(); })
 
-    $(CONFIG.VIEW_ID).mousemove(function() {
+    /*$(CONFIG.VIEW_ID).mousemove(function() {
 
-    });
+    });*/
 
     this.world.set(0, 80, '1');
     this.update();
@@ -143,6 +143,13 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
         ctx.fill();
       }
     }
+    ctx.restore();
+
+    var ctx = this.layer2.scene.context;
+    ctx.save();
+      ctx.clearRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
+      ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+      ctx.fillRect(0, this.currentRow*CONFIG.CELL_SIZE, CONFIG.VIEW_WIDTH, CONFIG.CELL_SIZE);
     ctx.restore();
   };
 
