@@ -32,7 +32,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
   function App() {
     this.layer1 = undefined;
     this.layer2 = undefined;
-    this.world = new array2d.Array2d(CONFIG.WORLD_HEIGHT, CONFIG.WORLD_WIDTH, '0');
+    this.world = new array2d.Array2d(CONFIG.WORLD_HEIGHT, CONFIG.WORLD_WIDTH, 0);
     this.rule = CONFIG.START_RULE;
     this.speed = 1;
     this.running = false;
@@ -104,11 +104,22 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     $('.button-start').click(function() { self.start(); })
     $('.button-stop').click(function() { self.stop(); })
     $('.button-randomize').click(function() { self.randomize(); })
+    $('.button-reset').click(function() { self.reset(); })
+
+    $('#seed').val(this.seed.toString());
+    $('#seed').on('input change', function() {
+      self.seed = bigInt($(this).val());
+    })
+
+    $(CONFIG.VIEW_ID).on('contextmenu', function() { return false; });
 
     $(CONFIG.VIEW_ID).mousedown(function(e) {
+      e.preventDefault();
       var pos = self.getMousePos(e);
-      self.paint = self.world.get(self.currentRow, pos.x) == '0' ? '1' : '0';
-      self.world.set(self.currentRow, pos.x, self.paint);
+      self.highlightCol = pos.x;
+
+      self.paint = e.button == 0 ? 1 : 0;
+      self.paintCell(self.currentRow, pos.x, self.paint);
       self.update();
     });
 
@@ -119,8 +130,8 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     $(CONFIG.VIEW_ID).mousemove(function(e) {
       var pos = self.getMousePos(e);
       self.highlightCol = pos.x;
-      if (self.paint) {
-        self.world.set(self.currentRow, pos.x, self.paint);
+      if (self.paint != null) {
+        self.paintCell(self.currentRow, pos.x, self.paint);
       }
       self.update();
     });
@@ -129,7 +140,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
       self.highlightCol = null;
     });
 
-    this.world.set(0, 80, '1');
+    this.reset();
     this.drawWorld();
     this.update();
   };
@@ -144,6 +155,18 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     if (r & 32) $('[data-r=5]').removeClass('r0').addClass('r1'); else $('[data-r=5]').removeClass('r1').addClass('r0');
     if (r & 64) $('[data-r=6]').removeClass('r0').addClass('r1'); else $('[data-r=6]').removeClass('r1').addClass('r0');
     if (r & 128) $('[data-r=7]').removeClass('r0').addClass('r1'); else $('[data-r=7]').removeClass('r1').addClass('r0');
+  };
+
+
+  App.prototype.setInitialSeed = function(seed) {
+    var bits = this.seed.toString(2);
+    var width = this.world.getCols();
+
+    for (var i = 0; i < bits.length; ++i) {
+      var x = width - i - 1;
+      if (x < 0) break;
+      this.world.set(this.currentRow, x, bits[i]);
+    }
   };
 
 
@@ -172,7 +195,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     ctx.save();
     for (var x = 0; x < width; ++x) {
       for (var y = 0; y < height; ++y) {
-        ctx.fillStyle = this.world.get(y, x) == '1' ? 'black' : 'white';
+        ctx.fillStyle = this.world.get(y, x) ? 'black' : 'white';
         ctx.fillRect(x*CONFIG.CELL_SIZE, y*CONFIG.CELL_SIZE, CONFIG.CELL_SIZE, CONFIG.CELL_SIZE);
         ctx.fill();
       }
@@ -181,22 +204,29 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
   };
 
 
-  App.prototype.drawRow = function() {
-    var ctx = this.layer1.scene.context;
-    var width = this.world.getCols();
-    var height = this.world.getRows();
--
+  App.prototype.drawCell = function(ctx, x, y, fill) {
     ctx.save();
-    if (this.currentRow == height) {
-        var data = ctx.getImageData(0, 0, 2*CONFIG.VIEW_WIDTH, 2*CONFIG.VIEW_HEIGHT);
-        ctx.putImageData(data, 0, -2*CONFIG.CELL_SIZE);
-      }
-      for (var x = 0; x < width; ++x) {
-        ctx.fillStyle = this.world.get(this.currentRow, x) == '1' ? 'black' : 'white';
-        ctx.fillRect(x*CONFIG.CELL_SIZE, this.currentRow*CONFIG.CELL_SIZE, CONFIG.CELL_SIZE, CONFIG.CELL_SIZE);
-        ctx.fill();
-      }
+    ctx.fillStyle = fill ? 'black' : 'white';
+    ctx.fillRect(x*CONFIG.CELL_SIZE, y*CONFIG.CELL_SIZE, CONFIG.CELL_SIZE, CONFIG.CELL_SIZE);
+    ctx.fill();
     ctx.restore();
+  };
+
+
+  App.prototype.paintCell = function(row, col, paint) {
+    this.world.set(row, col, paint);
+    console.log(paint);
+    this.drawCell(this.layer1.scene.context, col, row, paint);
+
+    if (row == 0) {
+      var pow = bigInt(1).shiftLeft(this.world.getCols() - col - 1);
+      if (paint == 1)
+        this.seed = this.seed.or(pow);
+      if (paint == 0)
+        this.seed = this.seed.and(pow.not());
+
+      $('#seed').val(this.seed.toString());
+    }
   };
 
 
@@ -218,7 +248,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
 
     if (this.currentRow == this.world.getRows()) {
       this.world.deleteRow(0);
-      this.world.addRow(this.world.getRows(), '0');
+      this.world.addRow(this.world.getRows(), 0);
       --this.currentRow;
     }
 
@@ -230,10 +260,14 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
       var parents = this.world.get(row-1, (x+width-1)%width) + this.world.get(row-1, x) + this.world.get(row-1, (x+1)%width);
       var rule = 1 << parseInt(parents, 2);
       if (this.rule & rule) {
-        this.world.set(row, x, '1');
+        this.world.set(row, x, 1);
       } else {
-        this.world.set(row, x, '0');
+        this.world.set(row, x, 0);
       }
+    }
+
+    if (this.highlightCol && this.paint) {
+      this.world.set(this.currentRow, this.highlightCol, this.paint);
     }
 
     this.drawWorld();
@@ -247,6 +281,10 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     this.steps = 0;
     this.currentRow = 0;
 
+    this.world = new array2d.Array2d(CONFIG.WORLD_HEIGHT, CONFIG.WORLD_WIDTH, 0);
+    this.setInitialSeed(this.seed);
+
+    this.drawWorld();
     this.update();
   };
 
