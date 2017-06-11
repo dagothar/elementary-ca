@@ -40,7 +40,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     this.dt = 100;
     this.steps = 0;
     this.currentRow = 0;
-    this.seed = bigInt('1');
+    this.seed = bigInt('604462909807314587353088');
     this.highlightCol = null;
     this.paint = null;
   };
@@ -109,6 +109,11 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     $('#seed').val(this.seed.toString());
     $('#seed').on('input change', function() {
       self.seed = bigInt($(this).val());
+
+      if (self.currentRow == 0) {
+        self.setInitialSeed(self.seed);
+        self.drawWorld();
+      }
     })
 
     $(CONFIG.VIEW_ID).on('contextmenu', function() { return false; });
@@ -162,10 +167,10 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     var bits = this.seed.toString(2);
     var width = this.world.getCols();
 
-    for (var i = 0; i < bits.length; ++i) {
-      var x = width - i - 1;
-      if (x < 0) break;
-      this.world.set(this.currentRow, x, bits[i]);
+    while (bits.length < width) bits = '0' + bits;
+
+    for (var i = 0; i < width; ++i) {
+      this.world.set(this.currentRow, i, bits[i] == '1' ? 1 : 0);
     }
   };
 
@@ -257,7 +262,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     var height = this.world.getRows();
 
     for (var x = 0; x < width; ++x) {
-      var parents = this.world.get(row-1, (x+width-1)%width) + this.world.get(row-1, x) + this.world.get(row-1, (x+1)%width);
+      var parents = this.world.get(row-1, (x+width-1)%width).toString() + this.world.get(row-1, x).toString() + this.world.get(row-1, (x+1)%width).toString();
       var rule = 1 << parseInt(parents, 2);
       if (this.rule & rule) {
         this.world.set(row, x, 1);
@@ -266,7 +271,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
       }
     }
 
-    if (this.highlightCol && this.paint) {
+    if (this.highlightCol && this.paint != null) {
       this.world.set(this.currentRow, this.highlightCol, this.paint);
     }
 
