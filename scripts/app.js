@@ -43,6 +43,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     this.seed = bigInt('604462909807314587353088');
     this.highlightCol = null;
     this.paint = null;
+    this.imageIndex = 0;
   };
 
 
@@ -105,6 +106,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     $('.button-stop').click(function() { self.stop(); })
     $('.button-randomize').click(function() { self.randomize(); })
     $('.button-reset').click(function() { self.reset(); })
+    $('.button-download').click(function() { self.download(self.imageIndex++); });
 
     $('#seed').val(this.seed.toString());
     $('#seed').on('input change', function() {
@@ -298,6 +300,11 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
 
 
     this.update();
+  };
+
+
+  App.prototype.download = function(i) {
+    this.view.toScene().download({ fileName: 'image' + i + '.png' });
   };
 
 
