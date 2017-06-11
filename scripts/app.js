@@ -58,6 +58,8 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     });
     this.layer1          = new Concrete.Layer();
     this.layer2          = new Concrete.Layer();
+    this.layer1.setSize(CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
+    this.layer2.setSize(CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
     this.view            .add(this.layer1).add(this.layer2);
 
     /* initialize interface */
@@ -119,8 +121,8 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
       self.highlightCol = pos.x;
       if (self.paint) {
         self.world.set(self.currentRow, pos.x, self.paint);
-        self.update();
       }
+      self.update();
     });
 
     $(CONFIG.VIEW_ID).mouseout(function() {
@@ -128,6 +130,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     });
 
     this.world.set(0, 80, '1');
+    this.drawWorld();
     this.update();
   };
 
@@ -148,7 +151,16 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
     $('.speed').text(this.speed.toFixed(2) + 'x');
     $('.steps').text(this.steps);
 
-    this.drawWorld();
+    var ctx = this.layer2.scene.context;
+    ctx.save();
+    ctx.clearRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
+    ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+    ctx.fillRect(0, this.currentRow*CONFIG.CELL_SIZE, CONFIG.VIEW_WIDTH, CONFIG.CELL_SIZE);
+    if (this.highlightCol != null) {
+      ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+      ctx.fillRect(this.highlightCol*CONFIG.CELL_SIZE, 0, CONFIG.CELL_SIZE, CONFIG.VIEW_HEIGHT);
+    }
+    ctx.restore();
   };
 
 
@@ -166,15 +178,23 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
       }
     }
     ctx.restore();
+  };
 
-    var ctx = this.layer2.scene.context;
+
+  App.prototype.drawRow = function() {
+    var ctx = this.layer1.scene.context;
+    var width = this.world.getCols();
+    var height = this.world.getRows();
+-
     ctx.save();
-      ctx.clearRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
-      ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
-      ctx.fillRect(0, this.currentRow*CONFIG.CELL_SIZE, CONFIG.VIEW_WIDTH, CONFIG.CELL_SIZE);
-      if (this.highlightCol) {
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
-        ctx.fillRect(this.highlightCol*CONFIG.CELL_SIZE, 0, CONFIG.CELL_SIZE, CONFIG.VIEW_HEIGHT);
+    if (this.currentRow == height) {
+        var data = ctx.getImageData(0, 0, 2*CONFIG.VIEW_WIDTH, 2*CONFIG.VIEW_HEIGHT);
+        ctx.putImageData(data, 0, -2*CONFIG.CELL_SIZE);
+      }
+      for (var x = 0; x < width; ++x) {
+        ctx.fillStyle = this.world.get(this.currentRow, x) == '1' ? 'black' : 'white';
+        ctx.fillRect(x*CONFIG.CELL_SIZE, this.currentRow*CONFIG.CELL_SIZE, CONFIG.CELL_SIZE, CONFIG.CELL_SIZE);
+        ctx.fill();
       }
     ctx.restore();
   };
@@ -216,6 +236,7 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
       }
     }
 
+    this.drawWorld();
     this.update();
   };
 
