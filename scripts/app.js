@@ -297,7 +297,19 @@ define(['jquery', 'concrete', 'array2d', 'bigint'], function($, Concrete, array2
 
 
   App.prototype.randomize = function() {
+    this.seed = bigInt(0);
 
+    for (var i = 0, cols = this.world.getCols(); i < cols; ++i) {
+      this.seed = this.seed.or(bigInt(Math.floor(2*Math.random())).shiftLeft(i));
+    }
+
+    console.log(this.seed.toString());
+    $('#seed').val(this.seed.toString());
+
+    if (this.currentRow == 0) {
+      this.setInitialSeed(this.seed);
+      this.drawWorld();
+    }
 
     this.update();
   };
